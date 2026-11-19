@@ -989,9 +989,9 @@ function teach(){
   <p class="msg" id="amsg"></p>
   ${srv.ok&&!srv.cfg?'<p class="msg" style="color:var(--bad)">Máy chủ chưa cấu hình Upstash Redis hoặc TEACHER_KEY trên Vercel.</p>':""}
   ${srv.ok?`<div class="form"><label for="tk">Mật khẩu giáo viên (biến TEACHER_KEY đặt trên Vercel)</label><input id="tk" type="password" autocomplete="off" value="${esc(tkey)}"><button class="btn pri" id="alink">${asg.id?"Cập nhật link học sinh":"Tạo link học sinh"}</button>${asg.id?'<button class="btn" id="anew">Tạo link mới</button>':""}</div><p class="msg" id="lmsg"></p>${asg.id?`<p class="sub">Link học sinh: <b>${esc(location.origin+"/hoc-sinh/?a="+asg.id)}</b></p><div class="row"><button class="btn" id="lcp">Sao chép link học sinh</button></div>`:""}`:""}
-  <textarea id="aexp" readonly placeholder="Mã giao bài sẽ hiện ở đây" aria-label="Mã giao bài"></textarea>
-  <div class="row"><button class="btn" id="acp">Sao chép mã giao bài</button></div>
-  <p class="sub">Link học sinh không có tab Giáo viên. Để tạo hoặc cập nhật link, hãy gửi mã này cho Claude trong khung chat kèm câu “tạo link học sinh”. Thời gian đặt ở đây cũng áp dụng khi bạn làm thử trên trang này.</p>
+  <textarea id="aexp" readonly placeholder="Link giao bài sẽ hiện ở đây" aria-label="Link giao bài"></textarea>
+  <div class="row"><button class="btn" id="acp">Sao chép link giao bài</button></div>
+  <p class="sub">Link được tạo chứa dữ liệu bài tập trong URL. Gửi nguyên link này cho học sinh; khi mở, app sẽ tự chuyển sang giao diện làm bài. Link có thể khá dài nếu bài có nhiều dữ liệu tùy chỉnh.</p>
   <h2>Bảng điểm học sinh (${scores.length} bài nộp)</h2>
   <p class="sub">Dán mã nộp điểm học sinh gửi vào đây. Có thể dán nhiều mã cùng lúc, mỗi mã một dòng.</p>
   <textarea id="sin" style="min-height:90px" placeholder="TV6.eyJh..." aria-label="Dán mã nộp điểm"></textarea>
@@ -1147,13 +1147,15 @@ function teach(){
     asg={title:($("#at").value.trim().slice(0,80)||"Bài kiểm tra từ vựng"),unit:$("#au").value,once:$("#ao").checked};
     saveSet();
     const code={id:"a"+Date.now().toString(36),title:asg.title,unit:asg.unit==="all"?"all":+asg.unit,t:tset,once:asg.once,data:{w:custom,e:exs,d:dlgs,o:dlgOv,h:hid}};
-    $("#aexp").value=JSON.stringify(code);
-    const m=$("#amsg"); m.textContent="Đã tạo mã giao bài. Hãy sao chép và gửi cho Claude để tạo link học sinh."; m.style.color="var(--ok)";
+    const payload=btoa(unescape(encodeURIComponent(JSON.stringify(code))));
+    const link=location.origin+"/hoc-sinh/?assignment="+encodeURIComponent(payload);
+    $("#aexp").value=link;
+    const m=$("#amsg"); m.textContent="Đã tạo link giao bài hoàn chỉnh. Sao chép link và gửi thẳng cho học sinh."; m.style.color="var(--ok)";
   };
   $("#acp").onclick = async () => {
     const v=$("#aexp").value, m=$("#amsg");
     if(!v){ m.textContent="Hãy bấm Tạo mã giao bài trước."; m.style.color="var(--bad)"; return; }
-    try{ await navigator.clipboard.writeText(v); m.textContent="Đã sao chép mã giao bài."; m.style.color="var(--ok)"; }catch(e){ $("#aexp").select(); m.textContent="Hãy nhấn giữ và sao chép mã trong ô trên."; m.style.color="var(--bad)"; }
+    try{ await navigator.clipboard.writeText(v); m.textContent="Đã sao chép link giao bài. Gửi link này trực tiếp cho học sinh."; m.style.color="var(--ok)"; }catch(e){ $("#aexp").select(); m.textContent="Không tự sao chép được. Hãy chọn và sao chép link trong ô trên."; m.style.color="var(--bad)"; }
   };
   $("#cp").onclick = async () => { try{ await navigator.clipboard.writeText($("#exp").value); note("Đã sao chép mã."); }catch(e){ $("#exp").select(); note("Hãy nhấn giữ và sao chép mã trong ô trên.",true); } };
   $("#imb").onclick = () => {
