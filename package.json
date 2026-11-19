@@ -1,0 +1,6 @@
+{
+  "name": "tu-vung-tieng-anh-6",
+  "private": true,
+  "version": "1.0.0",
+  "engines": { "node": ">=18" }
+}
